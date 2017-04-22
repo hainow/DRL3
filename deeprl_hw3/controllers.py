@@ -1,6 +1,10 @@
 """LQR, iLQR and MPC."""
+import time
+import pdb
 
 import numpy as np
+
+from scipy.linalg import solve_continuous_are
 
 
 def simulate_dynamics(env, x, u, dt=1e-5):
@@ -28,7 +32,16 @@ def simulate_dynamics(env, x, u, dt=1e-5):
       If you return x you will need to solve a different equation in
       your LQR controller.
     """
-    return np.zeros(x.shape)
+    env.state = x.copy()
+    x_next, r, is_done, _ = env._step(u, dt)
+    # env.render()
+    # time.sleep(1)
+
+    # x_ = np.copy(x_next)
+    # return (x_ - x) / dt
+
+    return (x_next - x) / dt
+
 
 
 def approximate_A(env, x, u, delta=1e-5, dt=1e-5):
@@ -54,7 +67,21 @@ def approximate_A(env, x, u, delta=1e-5, dt=1e-5):
     A: np.array
       The A matrix for the dynamics at state x and command u.
     """
-    return np.zeros((x.shape[0], x.shape[0]))
+    A = np.zeros((x.shape[0], x.shape[0]))
+    # A = np.random.rand(x.shape[0], x.shape[0])
+
+    # approximate each column at each time step, using simulate env object
+
+    for i in range(x.shape[0]):
+        d = np.zeros((x.shape[0], ))
+        d[i] = delta
+
+        x_dot_1 = simulate_dynamics(env, x + d, u, dt)
+        x_dot_2 = simulate_dynamics(env, x - d, u, dt)
+
+        A[:, i] = (x_dot_1 - x_dot_2) / 2 / delta
+
+    return A
 
 
 def approximate_B(env, x, u, delta=1e-5, dt=1e-5):
@@ -80,7 +107,21 @@ def approximate_B(env, x, u, delta=1e-5, dt=1e-5):
     B: np.array
       The B matrix for the dynamics at state x and command u.
     """
-    return np.zeros((x.shape[0], u.shape[0]))
+    B = np.zeros((x.shape[0], u.shape[0]))
+    # B = np.random.rand(x.shape[0], u.shape[0])
+
+    # approximate each column at each time step, using simulate env object
+    for i in range(u.shape[0]):
+        # B[i] = (B[i] * (u + delta) - B[i] * (u - delta)) / 2 / delta
+        d = np.zeros((u.shape[0], ))
+        d[i] = delta
+
+        x_dot_1 = simulate_dynamics(env, x, u + d, dt)  # 4 x 1
+        x_dot_2 = simulate_dynamics(env, x, u - d, dt)  # 4 x 1
+
+        B[:, i] = (x_dot_1 - x_dot_2) / 2 / delta
+
+    return B
 
 
 def calc_lqr_input(env, sim_env):
@@ -105,4 +146,14 @@ def calc_lqr_input(env, sim_env):
     u: np.array
       The command to execute at this point.
     """
-    return np.ones((2,))
+    u = np.zeros((2, ))
+    # u = np.random.rand(2,)
+    A = approximate_A(sim_env, sim_env.state, u)  # n x n
+    B = approximate_B(sim_env, sim_env.state, u)  # n x p
+
+    P = solve_continuous_are(A, B, env.Q, env.R)
+    K = np.dot(np.linalg.pinv(env.R), np.dot(B.T, P))  # n x p
+
+    u = -np.dot(K, env.state - env.goal)  # p x 1
+
+    return u

@@ -38,7 +38,8 @@ class TwoLinkArmEnv(gym.core.Env):
             self.Q = np.zeros((self.DOF * 2, self.DOF * 2))
             self.Q[:self.DOF, :self.DOF] = np.eye(self.DOF) * 1000.0
         else:
-            self.R = R
+            # self.R = R
+            self.Q = Q
 
         if R is None:
             self.R = np.eye(self.DOF) * 0.001
@@ -141,6 +142,7 @@ class TwoLinkArmEnv(gym.core.Env):
                 (M12**2. - M11 * M22))
         ddq0 = (-H2 + u[1] - M22 * ddq1) / M21
 
+        # update new state already in here
         self.dq += np.array([ddq0, ddq1]) * dt
         self.q += self.dq * dt
         self.t += dt
@@ -221,3 +223,6 @@ class LimitedTorqueTwoLinkArmEnv(TwoLinkArmEnv):
             max_torques = np.array([10.0, 10.0])
 
         self.action_space = gym.spaces.Box(low=-max_torques, high=max_torques)
+
+
+
