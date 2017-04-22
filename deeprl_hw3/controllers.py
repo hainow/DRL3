@@ -34,14 +34,8 @@ def simulate_dynamics(env, x, u, dt=1e-5):
     """
     env.state = x.copy()
     x_next, r, is_done, _ = env._step(u, dt)
-    # env.render()
-    # time.sleep(1)
-
-    # x_ = np.copy(x_next)
-    # return (x_ - x) / dt
 
     return (x_next - x) / dt
-
 
 
 def approximate_A(env, x, u, delta=1e-5, dt=1e-5):
@@ -68,12 +62,10 @@ def approximate_A(env, x, u, delta=1e-5, dt=1e-5):
       The A matrix for the dynamics at state x and command u.
     """
     A = np.zeros((x.shape[0], x.shape[0]))
-    # A = np.random.rand(x.shape[0], x.shape[0])
 
     # approximate each column at each time step, using simulate env object
-
     for i in range(x.shape[0]):
-        d = np.zeros((x.shape[0], ))
+        d = np.zeros((x.shape[0],))
         d[i] = delta
 
         x_dot_1 = simulate_dynamics(env, x + d, u, dt)
@@ -108,16 +100,15 @@ def approximate_B(env, x, u, delta=1e-5, dt=1e-5):
       The B matrix for the dynamics at state x and command u.
     """
     B = np.zeros((x.shape[0], u.shape[0]))
-    # B = np.random.rand(x.shape[0], u.shape[0])
 
     # approximate each column at each time step, using simulate env object
     for i in range(u.shape[0]):
         # B[i] = (B[i] * (u + delta) - B[i] * (u - delta)) / 2 / delta
-        d = np.zeros((u.shape[0], ))
+        d = np.zeros((u.shape[0],))
         d[i] = delta
 
-        x_dot_1 = simulate_dynamics(env, x, u + d, dt)  # 4 x 1
-        x_dot_2 = simulate_dynamics(env, x, u - d, dt)  # 4 x 1
+        x_dot_1 = simulate_dynamics(env, x, u + d, dt)
+        x_dot_2 = simulate_dynamics(env, x, u - d, dt)
 
         B[:, i] = (x_dot_1 - x_dot_2) / 2 / delta
 
@@ -146,8 +137,9 @@ def calc_lqr_input(env, sim_env):
     u: np.array
       The command to execute at this point.
     """
-    u = np.zeros((2, ))
+    u = np.zeros((2,))
     # u = np.random.rand(2,)
+
     A = approximate_A(sim_env, sim_env.state, u)  # n x n
     B = approximate_B(sim_env, sim_env.state, u)  # n x p
 
