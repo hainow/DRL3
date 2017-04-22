@@ -2,10 +2,9 @@ import gym
 import pdb
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import deeprl_hw3.controllers as ctl
-
-import matplotlib.pyplot as plt
 
 plt.rcParams['figure.figsize'] = 15, 8
 
