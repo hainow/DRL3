@@ -8,7 +8,6 @@ import deeprl_hw3.controllers as ctl
 
 import matplotlib.pyplot as plt
 
-
 plt.rcParams['figure.figsize'] = 15, 8
 
 """
@@ -19,8 +18,8 @@ Ref: https://en.wikipedia.org/wiki/Linear%E2%80%93quadratic_regulator
 
 
 def plot_states_and_control(states=None, u=None, env_name=None):
-    assert(len(states) == len(u))
-    x = [i+1 for i in range(len(states))]
+    assert (len(states) == len(u))
+    x = [i + 1 for i in range(len(states))]
 
     figure, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, sharex=True, sharey=False)
     figure.suptitle(env_name, fontsize=20)
@@ -47,6 +46,7 @@ def plot_states_and_control(states=None, u=None, env_name=None):
     plt.savefig(env_name + ".png")
     plt.show()
 
+
 def control_lqr(env_name="TwoLinkArm-v0"):
     env, sim_env = gym.make(env_name), gym.make(env_name)
     # env.state, sim_env.state = env.reset(), sim_env.reset()  # no need
@@ -55,8 +55,6 @@ def control_lqr(env_name="TwoLinkArm-v0"):
     count = 0
     for _ in range(10000):
         count += 1
-        # print("Loop {}".format(count))
-
         u = ctl.calc_lqr_input(env, sim_env)
         x_next, r, is_done, _ = env._step(u)  # state is updated in _step(u) already
 
@@ -67,7 +65,6 @@ def control_lqr(env_name="TwoLinkArm-v0"):
 
         # show time
         env.render()
-        time.sleep(.01)
 
         # early stopping
         if np.sum(np.square(env.goal - env.state)) <= 1e-3:
@@ -80,8 +77,6 @@ def control_lqr(env_name="TwoLinkArm-v0"):
     # plotting
     states, us = np.array(states), np.array(us)
     plot_states_and_control(states, us, env_name)
-
-
 
 
 if __name__ == "__main__":
@@ -99,7 +94,7 @@ if __name__ == "__main__":
         print("\nQuestion 2")
         control_lqr(env_names[1])
 
-        print("\nQuestion 3 is compare q1 vs. q2")
+        print("\nQuestion 3 is to compare q1 vs. q2")
 
         print("\nQuestion 4")
         control_lqr(env_names[2])
@@ -107,7 +102,7 @@ if __name__ == "__main__":
         print("\nQuestion 5")
         control_lqr(env_names[3])
 
-        print("\nQuestion 6 is compare q4 vs. q5")
+        print("\nQuestion 6 is to compare q4 vs. q5")
 
     except KeyboardInterrupt:
         exit(0)
