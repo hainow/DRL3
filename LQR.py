@@ -74,7 +74,7 @@ def control_lqr(env_name="TwoLinkArm-v0"):
 
     # plotting
     states, us = np.array(states), np.array(us)
-    plot_states_and_control(states, us, env_name)
+    plot_states_and_control(states, us, "LQR: " + env_name)
 
 
 if __name__ == "__main__":
