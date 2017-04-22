@@ -1,6 +1,5 @@
 import gym
 import pdb
-import time
 
 import numpy as np
 
