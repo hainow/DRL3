@@ -1,7 +1,4 @@
 """LQR, iLQR and MPC."""
-import time
-import pdb
-
 import numpy as np
 
 from scipy.linalg import solve_continuous_are
