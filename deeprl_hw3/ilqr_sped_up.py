@@ -141,6 +141,7 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
     x0 = env.reset()
     U, U_new = np.zeros((tN, 2)), np.zeros((tN, 2))
     n, d = x0.shape[0], U[0].shape[0]  # n = 4, d = 2
+    step = 10
     costs = []  # stats for plotting
 
     # begin optimizing
@@ -171,6 +172,8 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
 
         # set stopping condition
         if new_cost < current_cost:
+            step /= 10.
+
             # update control sequences
             U = np.copy(U_new)
             X = np.copy(X_new)  # for stats purpose only, next iteration will reuse x0 anyway
@@ -178,6 +181,10 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
             # early stopping
             if abs(new_cost - current_cost) / float(current_cost) <= 1e-3:
                 print("early stopping at loop {}, cost = {}".format(i, new_cost))
+                break
+        else:
+            step *= 10
+            if step > 1000:
                 break
 
     # We change this API so that plotting will be in our driver "iLQR.py"

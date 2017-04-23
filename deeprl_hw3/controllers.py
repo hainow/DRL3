@@ -100,7 +100,6 @@ def approximate_B(env, x, u, delta=1e-5, dt=1e-5):
 
     # approximate each column at each time step, using simulate env object
     for i in range(u.shape[0]):
-        # B[i] = (B[i] * (u + delta) - B[i] * (u - delta)) / 2 / delta
         d = np.zeros((u.shape[0],))
         d[i] = delta
 
