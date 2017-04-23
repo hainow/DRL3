@@ -142,13 +142,13 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
     U, U_new = np.zeros((tN, 2)), np.zeros((tN, 2))
     n, d = x0.shape[0], U[0].shape[0]  # n = 4, d = 2
     costs = []  # stats for plotting
-
+    current_cost = np.inf
     # begin optimizing
     for i in range(max_iter):
-        print("At iteration {}".format(i))
+        print("At iteration {} current cost = {}".format(i, current_cost))
 
         # ====================FORWARD========================
-        X, current_cost = simulate(env, x0, U)
+        X, new_cost = simulate(env, x0, U)
         f_u_s, f_x_s, l_u_s, l_uu_s, l_ux_s, l_x_s, l_xx_s, l_s = ilqr_forward(U, X, d, env, n, sim_env, tN)
 
         # ====================BACKWARD========================
@@ -162,23 +162,20 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
             U_new[t] = U[t] + k[t] + np.dot(K[t], current_x - X[t])
             current_x = simulate_dynamics_next(env, current_x, U_new[t])
 
-        # new trajectory
-        X_new, new_cost = simulate(env, x0, U_new)
-
-        # show time
-        env.render()
-        costs.append(current_cost)
+        # collect monitoring data
+        # env.render()  # optionally can render during training
+        costs.append(new_cost)
 
         # set stopping condition
         if new_cost < current_cost:
-            # update control sequences
-            U = np.copy(U_new)
-            X = np.copy(X_new)  # for stats purpose only, next iteration will reuse x0 anyway
-
             # early stopping
             if abs(new_cost - current_cost) / float(current_cost) <= 1e-3:
                 print("early stopping at loop {}, cost = {}".format(i, new_cost))
                 break
+
+            # update control sequences
+            U = np.copy(U_new)
+            current_cost = new_cost
 
     # We change this API so that plotting will be in our driver "iLQR.py"
     # just besides U, we output plotting statistics
