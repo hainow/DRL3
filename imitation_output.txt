@@ -20,3 +20,5 @@ NUMBER OF EPISODES: 100
  - Hard Reward: 66.4400 +/- 66.9149
 EXPERT:
  - Hard Reward: 77.5200 +/- 51.8827
+DAGGER:
+ - Hard Reward: 71.8000 +/- 73.4613
