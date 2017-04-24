@@ -6,7 +6,6 @@ from keras.models import model_from_yaml
 import numpy as np
 import time
 
-
 def load_model(model_config_path, model_weights_path=None):
     """Load a saved model.
 
@@ -55,7 +54,34 @@ def generate_expert_training_data(expert, env, num_episodes=100, render=True):
       second contains a one-hot encoding of all of the actions chosen
       by the expert for those states.
     """
-    return np.zeros((4,)), np.zeros((2,))
+
+    # Initialize states and actions.
+    states = []
+    actions = []
+
+    for episode in range(num_episodes):
+        done = False
+        state = env.reset()
+
+        # Gather data until episode completion
+        while not done:
+            if render:
+                env.render()
+                time.sleep(0.01)
+
+            # Expert prediction
+            action = np.argmax(expert.predict_on_batch(state[np.newaxis, ...])[0])
+
+            # One-hot encoding of expert prediction
+            train_action = np.zeros((2,))
+            train_action[action] = 1.
+
+            actions.append(train_action)
+            states.append(state)
+
+            state, reward, done, _ = env.step(action)
+
+    return np.array(states), np.array(actions)
 
 
 def test_cloned_policy(env, cloned_policy, num_episodes=50, render=True):
@@ -84,7 +110,7 @@ def test_cloned_policy(env, cloned_policy, num_episodes=50, render=True):
         state = env.reset()
         if render:
             env.render()
-            time.sleep(.1)
+            time.sleep(.01)
         is_done = False
         while not is_done:
             action = np.argmax(
@@ -98,8 +124,12 @@ def test_cloned_policy(env, cloned_policy, num_episodes=50, render=True):
             'Total reward: {}'.format(total_reward))
         total_rewards.append(total_reward)
 
+    mean = np.mean(total_rewards)
+    std = np.std(total_rewards)
     print('Average total reward: {} (std: {})'.format(
-        np.mean(total_rewards), np.std(total_rewards)))
+        mean, std))
+
+    return total_rewards
 
 
 def wrap_cartpole(env):
@@ -136,3 +166,58 @@ def wrap_cartpole(env):
     unwrapped_env._reset = harder_reset
 
     return env
+
+def dagger(expert, policy, env, eval_env, iterations=20, k=1):
+    """Run DAGGER algorithm.
+
+    DAGGER algorithm as described in https://katefvision.github.io/katefSlides/immitation_learning_I_katef.pdf
+    on slide 26 originally shown in https://www.cs.cmu.edu/~sross1/publications/Ross-AIStats11-NoRegret.pdf.
+
+    Parameters
+    ----------
+    expert: keras.models.Model
+      Expert policy to learn policy from.
+    policy: keras.models.Model
+      Policy to train.
+    env: gym.core.Env
+      The gym environment associated with expert.
+    iterations: int
+      Number of iterations in which policy runs and requests expert feedback.
+    k: int
+      Frequency of episodes at which to evaluate policy on.
+
+    Return
+    ------
+    mean_rewards, min_rewards, max_rewards
+    """
+
+    # Initialize data
+    states, actions = generate_expert_training_data(expert, env, num_episodes=1, render=False)
+
+    # Performance metrics
+    mean_rewards = []
+    min_rewards = []
+    max_rewards = []
+
+    for iteration in range(iterations):
+
+        policy.fit(states, actions, epochs=50, verbose=2)
+        policy_states, _ = generate_expert_training_data(policy, env, num_episodes=1, render=False)
+
+        predictions = expert.predict_on_batch(policy_states)
+        expert_argmax = np.argmax(predictions, axis=1)
+        expert_actions = np.zeros(predictions.shape)
+        for i in range(len(expert_actions)):
+            expert_actions[i][expert_argmax[i]] = 1.
+        states = np.append(states, policy_states, axis=0)
+        actions = np.append(actions, expert_actions, axis=0)
+
+        if iteration % k == 0:
+            rewards = test_cloned_policy(eval_env, policy, num_episodes=100, render=False)
+            mean_rewards.append(np.mean(rewards))
+            min_rewards.append(np.min(rewards))
+            max_rewards.append(np.max(rewards))
+
+    return mean_rewards, min_rewards, max_rewards
+
+

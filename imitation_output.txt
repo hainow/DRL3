@@ -1,0 +1,24 @@
+NUMBER OF EPISODES: 1
+ - Final Loss: 0.2914
+ - Final Accuracy: 0.8500
+ - Base Reward: 169.9000 +/- 51.2860
+ - Hard Reward: 18.1400 +/- 11.6310
+NUMBER OF EPISODES: 10
+ - Final Loss: 0.1164
+ - Final Accuracy: 0.9430
+ - Base Reward: 200.0000 +/- 0.0000
+ - Hard Reward: 83.4400 +/- 70.8235
+NUMBER OF EPISODES: 50
+ - Final Loss: 0.0669
+ - Final Accuracy: 0.9738
+ - Base Reward: 200.0000 +/- 0.0000
+ - Hard Reward: 52.6600 +/- 38.7998
+NUMBER OF EPISODES: 100
+ - Final Loss: 0.0581
+ - Final Accuracy: 0.9758
+ - Base Reward: 200.0000 +/- 0.0000
+ - Hard Reward: 66.4400 +/- 66.9149
+EXPERT:
+ - Hard Reward: 77.5200 +/- 51.8827
+DAGGER:
+ - Hard Reward: 71.8000 +/- 73.4613
