@@ -139,8 +139,7 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
       The SEQUENCE of commands to execute. The size should be (tN, #parameters)
     """
 
-    # access current state,
-    # at beginning, this state is always the starting/resetting state
+    # access current state, x0 will be changed in MPC at different timesteps
     x0 = env.state
 
     U, U_new = np.zeros((tN, 2)), np.zeros((tN, 2))

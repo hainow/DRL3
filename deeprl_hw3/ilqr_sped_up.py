@@ -148,6 +148,8 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
     step = 1e-4; max_step = 0.1
 
     # begin optimizing
+    up_hill = False
+    step_factor = 2
     for i in range(max_iter):
         print("At iteration {} current cost = {} step = {}".format(i, current_cost, step))
 
@@ -173,9 +175,12 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         # set stopping condition
         if new_cost < current_cost:
             # increase step size
-            step *= 2
+            step *= step_factor
             if step >= max_step:
                 step = max_step
+
+            if up_hill:
+                up_hill = False
 
             # early stopping
             if abs(new_cost - current_cost) / float(current_cost) <= 1e-3:
@@ -186,9 +191,13 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
             U = np.copy(U_new)
             current_cost = new_cost
         else:
+            if up_hill:
+                continue
+
             # decrease step size
-            step /= 2
-            current_cost = new_cost
+            step /= step_factor
+            up_hill = True
+            # current_cost = new_cost
 
 
     # We change this API so that plotting will be in our driver "iLQR.py"
