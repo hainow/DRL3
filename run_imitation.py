@@ -16,6 +16,18 @@ def main():
     plot_dagger()
 
 def plot_dagger(dataname='dagger_data.csv'):
+    """Plot the DAGGER learning curve.
+
+    Plot contains the mean reward with error bars representing
+    minimum and maximum reward.  Needed to answer q1 of Question 2's
+    extra creddit portion for DAGGER.
+
+    Parameters
+    ----------
+    dataname: str
+      Name of csv file containing reward data for a DAGGER learning curve.
+
+    """
 
     indices = [i for i in range(20)]
     min_rewards = []
@@ -47,6 +59,18 @@ def plot_dagger(dataname='dagger_data.csv'):
     
 
 def test_dagger(filename='imitation_output.txt', dataname='dagger_data.csv'):
+    """Get metrics for DAGGER algorithm.
+
+    Gets necessary data to answer q1 and q2 in the extra credit portion (DAGGER)
+    in Question 2.
+
+    Parameters
+    ----------
+    filename: str
+      Name of file to append DAGGER performance on wrapper environment to.
+    dataname: str
+      Name of file to write evaluation data on base env to.
+    """
     with tf.Session() as sess:
         # Load expert
         expert = imit.load_model('CartPole-v0_config.yaml', 'CartPole-v0_weights.h5f')
