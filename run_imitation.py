@@ -1,4 +1,6 @@
+import csv
 import gym
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
@@ -11,6 +13,38 @@ EXPERT_OUTPUT = "EXPERT:\n - Hard Reward: %.4f +/- %.4f\n"
 def main():
     log_imitation()
     test_dagger()
+    plot_dagger()
+
+def plot_dagger(dataname='dagger_data.csv'):
+
+    indices = [i for i in range(20)]
+    min_rewards = []
+    max_rewards = []
+    mean_rewards = []
+
+    with open(dataname) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            min_rewards.append(float(row['Min']))
+            max_rewards.append(float(row['Max']))
+            mean_rewards.append(float(row['Mean']))
+    
+    mean_rewards = np.array(mean_rewards)
+    min_rewards = np.array(min_rewards)
+    max_rewards = np.array(max_rewards)
+
+    upper = max_rewards - mean_rewards
+    lower = mean_rewards - min_rewards
+
+    plt.figure()
+    plt.errorbar(indices, mean_rewards, yerr=[lower, upper], ecolor='red', elinewidth=0.4, capsize=4)
+    plt.title("DAGGER Average Rewards vs. Episode with Min/Max Error Bars")
+    plt.xticks(np.arange(0,20,2))
+    plt.ylabel('Episode Reward')
+    plt.xlabel('Episode')
+    plt.savefig('DAGGER Plot.png')
+
+    
 
 def test_dagger(filename='imitation_output.txt', dataname='dagger_data.csv'):
     with tf.Session() as sess:
