@@ -8,17 +8,17 @@ import deeprl_hw3.imitation as imit
 import deeprl_hw3.reinforce as reinforce
 
 def create_callback(env, output):
-	"""Create callback for REINFORCE.
-	
-	Used to write data into .csv file for REINFORCE.
+    """Create callback for REINFORCE.
+    
+    Used to write data into .csv file for REINFORCE.
 
-	Parameters
-	----------
-	env: gym.core.Env
-	  Environment being run on.
-	output: str
-	  Output .csv file.
-	"""
+    Parameters
+    ----------
+    env: gym.core.Env
+      Environment being run on.
+    output: str
+      Output .csv file.
+    """
     def callback(iteration, reward, model):
         if iteration == 0:
             f = open(output, 'a+')
@@ -32,7 +32,7 @@ def create_callback(env, output):
     return callback
 
 def test_reinforce(output='reinforce_data.csv'):
-	"""Get metrics for REINFORCE algorithm.
+    """Get metrics for REINFORCE algorithm.
 
     Gets necessary data to answer q1 and q2 in Question 3.
 
@@ -53,7 +53,7 @@ def test_reinforce(output='reinforce_data.csv'):
         f.write("REINFORCE:\n - Hard Reward: %.4f +/- %.4f\n" % (np.mean(rewards), np.std(rewards)))
         f.close()
 
-def plot_reinforce(dataname='reinforce_data.csv'):
+def plot_reinforce(dataname='reinforce_data.csv', plotname='REINFORCE Plot.png'):
     """Plot the REINFORCE learning curve.
 
     Plot contains the mean reward with error bars representing
@@ -64,6 +64,8 @@ def plot_reinforce(dataname='reinforce_data.csv'):
     ----------
     dataname: str
       Name of csv file containing reward data for a DAGGER learning curve.
+    plotname: str
+      Name of png file to write plot to.
 
     """
 
@@ -93,10 +95,10 @@ def plot_reinforce(dataname='reinforce_data.csv'):
     plt.xticks(np.arange(0, 20, 2))
     plt.ylabel('Episode Reward')
     plt.xlabel('Episode')
-    plt.savefig('REINFORCE Plot.png')
+    plt.savefig(plotname)
 
 def main():
-	test_reinforce()
+    test_reinforce()
     plot_reinforce()
 
 if __name__ == '__main__':
