@@ -1,3 +1,4 @@
+import csv
 import gym
 import numpy as np
 import tensorflow as tf
@@ -72,7 +73,7 @@ def process_rewards(rewards, gamma):
         discounted[i] = rewards[i] + gamma*discounted[i+1]
     return np.array(discounted)
 
-def reinforce(env, sess, gamma = 0.98, alpha = 0.00025):
+def reinforce(env, sess, gamma = 0.98, alpha = 0.00025, callback = None):
     """Policy gradient algorithm
 
     Parameters
@@ -102,14 +103,19 @@ def reinforce(env, sess, gamma = 0.98, alpha = 0.00025):
     rewards = []
     iteration = 0
     while True:
+
         S, A, R = run_episode(env, model)
 
         reward = sum(R)
         rewards.append(reward)
+
+        if callback != None:
+            callback(iteration, reward, model)
+
         print("REWARD (%d): %.4f" % (iteration, reward))
         if len(rewards) > 20 and np.std(np.array(rewards[-20:])) < 3. and np.mean(np.array(rewards[-5:])) > 50.:
             print("CONVERGED")
-            return get_total_reward(env, model)
+            return model
 
         G = process_rewards(R, gamma)
         total_gradient = None
@@ -118,7 +124,6 @@ def reinforce(env, sess, gamma = 0.98, alpha = 0.00025):
             gradients = get_gradient(S[t].reshape((1,4)), A[t])
             assert(len(weights) == len(gradients))
             for i in range(len(weights)):
-                #weights[i] += (gamma ** t) * alpha * G[t] * gradients[i]
                 weights[i] += alpha * G[t] *(gamma**t)* gradients[i]
         model.set_weights(weights)
         iteration += 1
