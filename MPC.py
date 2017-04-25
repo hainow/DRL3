@@ -50,8 +50,8 @@ def show_optimal_trajectory(env, U):
 def control_ilqr(env_name="TwoLinkArm-v0"):
 
     env, sim_env = gym.make(env_name), gym.make(env_name)
-    U, X = mpc.calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
-
+    # U, X = mpc.calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
+    U, X = mpc.faster_calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
     print U
     print X
     plot_states_and_control_ilqr(X, U, "MPC: " + env_name)

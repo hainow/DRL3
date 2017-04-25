@@ -47,3 +47,48 @@ def calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
 
     return U_mpc, X_mpc
 
+
+def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
+    """Calculate the optimal control input for the given state.
+    
+    A FASTER SOLUTION: instead of optimizing just 1 state at a time 
+     We optimize a group of continuous steps. 
+
+    Parameters
+    ----------
+    env: gym.core.Env
+      This is the true environment you will execute the computed
+      commands on. Use this environment to get the Q and R values as
+      well as the state.
+    sim_env: gym.core.Env
+      A copy of the env class. Use this to simulate the dynamics when
+      doing finite differences.
+    tN: number of control steps you are going to execute
+    max_iter: max iterations for optmization
+
+    Returns
+    -------
+    U: np.array
+      The SEQUENCE of commands to execute. The size should be (tN, #parameters)
+    """
+    U_mpc = np.zeros((tN, 2))
+    X_mpc = np.zeros((tN, 4))
+    # reset for next iLQR iterative process
+    env.reset()
+    sim_env.reset()
+
+    for t in range(2):
+        print("\n***Begin using iLQR to optimize for current timestep {}***\n".format(t))
+        # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
+        U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN, max_iter)
+
+        # update x_t and record u_t for next timestep's optimization
+        for i in range(tN/2):
+            current_x, _, _, _ = env.step(U[i])
+            env.state = current_x
+            X_mpc[t * (tN/2) + i] = current_x
+
+        # update optimal control sequence at current timestep, discard the rest
+        U_mpc[t * (tN/2): (t+1) * (tN/2)] = U[:tN/2]
+
+    return U_mpc, X_mpc
