@@ -10,10 +10,12 @@ POLICY_OUTPUT = "NUMBER OF EPISODES: %d\n - Final Loss: %.4f\n - Final Accuracy:
 DAGGER_OUTPUT = "DAGGER:\n - Hard Reward: %.4f +/- %.4f\n"
 EXPERT_OUTPUT = "EXPERT:\n - Hard Reward: %.4f +/- %.4f\n"
 
+
 def main():
     log_imitation()
     test_dagger()
     plot_dagger()
+
 
 def plot_dagger(dataname='dagger_data.csv'):
     """Plot the DAGGER learning curve.
@@ -40,7 +42,7 @@ def plot_dagger(dataname='dagger_data.csv'):
             min_rewards.append(float(row['Min']))
             max_rewards.append(float(row['Max']))
             mean_rewards.append(float(row['Mean']))
-    
+
     mean_rewards = np.array(mean_rewards)
     min_rewards = np.array(min_rewards)
     max_rewards = np.array(max_rewards)
@@ -51,12 +53,11 @@ def plot_dagger(dataname='dagger_data.csv'):
     plt.figure()
     plt.errorbar(indices, mean_rewards, yerr=[lower, upper], ecolor='red', elinewidth=0.4, capsize=4)
     plt.title("DAGGER Average Rewards vs. Episode with Min/Max Error Bars")
-    plt.xticks(np.arange(0,20,2))
+    plt.xticks(np.arange(0, 20, 2))
     plt.ylabel('Episode Reward')
     plt.xlabel('Episode')
     plt.savefig('DAGGER Plot.png')
 
-    
 
 def test_dagger(filename='imitation_output.txt', dataname='dagger_data.csv'):
     """Get metrics for DAGGER algorithm.
@@ -106,6 +107,7 @@ def test_dagger(filename='imitation_output.txt', dataname='dagger_data.csv'):
         f = open(dataname, 'w')
         f.write(data_string)
         f.close()
+
 
 def log_imitation(filename='imitation_output.txt'):
     """Logs outputs for test_policy.
@@ -166,7 +168,7 @@ def test_policy(num_episodes):
 
         # generate data from expert
         states, actions = imit.generate_expert_training_data(expert, env,
-            num_episodes=num_episodes, render=False)
+                                                             num_episodes=num_episodes, render=False)
 
         # train policy
         history = policy.fit(states, actions, epochs=50, verbose=2)
@@ -185,6 +187,7 @@ def test_policy(num_episodes):
 
         return final_loss, final_accuracy, mean, std, hard_mean, hard_std
 
+
 def evaluate_expert():
     """Evaluate expert on the wrapper environment.
     Return
@@ -197,6 +200,7 @@ def evaluate_expert():
         expert = imit.load_model('CartPole-v0_config.yaml', 'CartPole-v0_weights.h5f')
         rewards = imit.test_cloned_policy(env, expert, render=False)
         return np.mean(rewards), np.std(rewards)
+
 
 if __name__ == '__main__':
     main()

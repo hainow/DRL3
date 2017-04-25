@@ -131,25 +131,29 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
       A copy of the env class. Use this to simulate the dynamics when
       doing finite differences.
     tN: number of control steps you are going to execute
-    max_iter: max iterations for optmization
+    max_iter: max iterations for optimization
 
     Returns
     -------
     U: np.array
       The SEQUENCE of commands to execute. The size should be (tN, #parameters)
     """
-    x0 = env.reset()
+
+    # access current state, x0 will be changed in MPC at different timesteps
+    x0 = env.state
+
     U, U_new = np.zeros((tN, 2)), np.zeros((tN, 2))
     n, d = x0.shape[0], U[0].shape[0]  # n = 4, d = 2
     costs = []  # stats for plotting
     current_cost = np.inf
     # begin optimizing
     for i in range(max_iter):
-        print("At iteration {} current cost = {}".format(i, current_cost))
+        X, new_cost = simulate(env, x0, U)
+
+        print("At iteration {}:\tcurrent cost = {}\tnew_cost = {}\tx0 = {}".format(i, current_cost, new_cost, x0))
 
         # ====================FORWARD========================
-        X, new_cost = simulate(env, x0, U)
-        f_u_s, f_x_s, l_u_s, l_uu_s, l_ux_s, l_x_s, l_xx_s, l_s = ilqr_forward(U, X, d, env, n, sim_env, tN)
+        f_u_s, f_x_s, l_u_s, l_uu_s, l_ux_s, l_x_s, l_xx_s, l_s = ilqr_forward(U, X, d, n, sim_env, tN)
 
         # ====================BACKWARD========================
         k, K = ilqr_backward(d, f_u_s, f_x_s, l_u_s, l_uu_s, l_ux_s, l_x_s, l_xx_s, n, tN)
@@ -163,19 +167,17 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
             current_x = simulate_dynamics_next(env, current_x, U_new[t])
 
         # collect monitoring data
-        # env.render()  # optionally can render during training
+        env.render()  # optionally can render during training
         costs.append(new_cost)
 
         # set stopping condition
-        if new_cost < current_cost:
-            # early stopping
-            if abs(new_cost - current_cost) / float(current_cost) <= 1e-3:
-                print("early stopping at loop {}, cost = {}".format(i, new_cost))
-                break
+        if abs(new_cost - current_cost) / float(current_cost) <= float(1e-3):
+            print("early stopping at loop {}, cost = {}".format(i, new_cost))
+            break
 
-            # update control sequences
-            U = np.copy(U_new)
-            current_cost = new_cost
+        # update control sequences
+        U = np.copy(U_new)
+        current_cost = new_cost
 
     # We change this API so that plotting will be in our driver "iLQR.py"
     # just besides U, we output plotting statistics
@@ -185,7 +187,7 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
 # ==================================================
 # ========== HELPERS for calc_ilqr_input ===========
 # ==================================================
-def ilqr_forward(U, X, d, env, n, sim_env, tN):
+def ilqr_forward(U, X, d, n, sim_env, tN):
     """
     Forward pass of iLQR algorithm 
     
@@ -226,20 +228,20 @@ def ilqr_forward(U, X, d, env, n, sim_env, tN):
         # we need A and B for derivation of f(x_t+1) = A*x_t + B*u_t
         A = ctl.approximate_A(sim_env, X[t], U[t])
         B = ctl.approximate_B(sim_env, X[t], U[t])
-        f_x_s[t] = A * env.dt + np.eye(n)  # magic trick
-        f_u_s[t] = B * env.dt
+        f_x_s[t] = A * sim_env.dt + np.eye(n)  # magic trick
+        f_u_s[t] = B * sim_env.dt
 
         # then for normal costs and their derivations
-        l, l_x, l_xx, l_u, l_uu, l_ux = cost_inter(env, X[t], U[t])
-        l_s[t] = l * env.dt
-        l_x_s[t] = l_x * env.dt
-        l_xx_s[t] = l_xx * env.dt
-        l_u_s[t] = l_u * env.dt
-        l_uu_s[t] = l_uu * env.dt
-        l_ux_s[t] = l_ux * env.dt
+        l, l_x, l_xx, l_u, l_uu, l_ux = cost_inter(sim_env, X[t], U[t])
+        l_s[t] = l * sim_env.dt
+        l_x_s[t] = l_x * sim_env.dt
+        l_xx_s[t] = l_xx * sim_env.dt
+        l_u_s[t] = l_u * sim_env.dt
+        l_uu_s[t] = l_uu * sim_env.dt
+        l_ux_s[t] = l_ux * sim_env.dt
 
     # and separately for final state
-    l_s[-1], l_x_s[-1], l_xx_s[-1] = cost_final(env, X[tN - 1])
+    l_s[-1], l_x_s[-1], l_xx_s[-1] = cost_final(sim_env, X[tN - 1])
 
     return f_u_s, f_x_s, l_u_s, l_uu_s, l_ux_s, l_x_s, l_xx_s, l_s
 

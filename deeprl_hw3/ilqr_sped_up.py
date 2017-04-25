@@ -7,7 +7,7 @@ import scipy.linalg
 import controllers as ctl
 
 
-def simulate_dynamics_next(env, x, u):
+def simulate_dynamics_next(env, x, u, step=1e-3):
     """Step simulator to see how state changes.
 
     Parameters
@@ -21,13 +21,14 @@ def simulate_dynamics_next(env, x, u):
     u: np.array
       The command to test. When approximating B you will need to
       perturb this.
-
+    step: step size 
+    
     Returns
     -------
     next_x: np.array
     """
     env.state = x.copy()
-    x_next, r, is_done, _ = env.step(u)
+    x_next, r, is_done, _ = env._step(u, step)
 
     return x_next
 
@@ -96,7 +97,7 @@ def cost_final(env, x):
     return l, l_x, l_xx
 
 
-def simulate(env, x0, U):
+def simulate(env, x0, U, step=1e-3):
     ''' Similuate dynamics using starting state x0 and a sequence U '''
     tN = U.shape[0]
 
@@ -108,7 +109,7 @@ def simulate(env, x0, U):
     for i in range(tN - 1):
         l, _, _, _, _, _ = cost_inter(env, U[i], X[i])
         total_cost += env.dt * l
-        X[i + 1] = simulate_dynamics_next(env, X[i], U[i])
+        X[i + 1] = simulate_dynamics_next(env, X[i], U[i], step)
 
     # append last state's cost
     ll, _, _ = cost_final(env, X[tN - 1])
@@ -138,18 +139,22 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
     U: np.array
       The SEQUENCE of commands to execute. The size should be (tN, #parameters)
     """
-    x0 = env.reset()
+    x0 = env.state
+
     U, U_new = np.zeros((tN, 2)), np.zeros((tN, 2))
     n, d = x0.shape[0], U[0].shape[0]  # n = 4, d = 2
-    step = 10
     costs = []  # stats for plotting
+    current_cost = np.inf
+    step = 1e-4; max_step = 0.1
 
     # begin optimizing
+    up_hill = False
+    step_factor = 2
     for i in range(max_iter):
-        print("At iteration {}".format(i))
+        print("At iteration {} current cost = {} step = {}".format(i, current_cost, step))
 
         # ====================FORWARD========================
-        X, current_cost = simulate(env, x0, U)
+        X, new_cost = simulate(env, x0, U, step)
         f_u_s, f_x_s, l_u_s, l_uu_s, l_ux_s, l_x_s, l_xx_s, l_s = ilqr_forward(U, X, d, env, n, sim_env, tN)
 
         # ====================BACKWARD========================
@@ -161,31 +166,43 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         current_x = x0.copy()
         for t in range(tN - 1):
             U_new[t] = U[t] + k[t] + np.dot(K[t], current_x - X[t])
-            current_x = simulate_dynamics_next(env, current_x, U_new[t])
+            current_x = simulate_dynamics_next(env, current_x, U_new[t], step)
 
-        # new trajectory
-        X_new, new_cost = simulate(env, x0, U_new)
-
-        # show time
-        env.render()
-        costs.append(current_cost)
+        # collect monitoring data
+        env.render()  # optionally can render during training
+        costs.append(new_cost)
 
         # set stopping condition
         if new_cost < current_cost:
-            step /= 10.
+            # increase step size
+            step *= step_factor
+            if step >= max_step:
+                step = max_step
 
-            # update control sequences
-            U = np.copy(U_new)
-            X = np.copy(X_new)  # for stats purpose only, next iteration will reuse x0 anyway
+            if up_hill:
+                up_hill = False
 
             # early stopping
             if abs(new_cost - current_cost) / float(current_cost) <= 1e-3:
                 print("early stopping at loop {}, cost = {}".format(i, new_cost))
                 break
+
+            # update control sequences
+            U = np.copy(U_new)
+            current_cost = new_cost
         else:
-            step *= 10
-            if step > 1000:
-                break
+            if up_hill:
+                continue
+
+            # decrease step size
+            step /= step_factor
+            up_hill = True
+            # current_cost = new_cost
+
+
+    # We change this API so that plotting will be in our driver "iLQR.py"
+    # just besides U, we output plotting statistics
+    return U, X, costs
 
     # We change this API so that plotting will be in our driver "iLQR.py"
     # just besides U, we output plotting statistics

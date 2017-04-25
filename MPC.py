@@ -2,8 +2,7 @@ import gym
 import time
 import matplotlib.pyplot as plt
 
-import deeprl_hw3.ilqr as ilqr
-# import deeprl_hw3.ilqr_sped_up as ilqr
+import deeprl_hw3.mpc as mpc
 
 plt.rcParams['figure.figsize'] = 15, 8
 
@@ -38,38 +37,24 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
     plt.show()
 
 
-def plot_costs_ilqr(costs=None, env_name=None):
-    x = [i+1 for i in range(len(costs))]
-    plt.plot(x, costs, color='r', marker='*', label='')
-    plt.title("iLQR: Costs over timesteps for " + env_name, fontsize=20)
-    plt.xlabel("iterations", fontsize=14)
-    plt.ylabel("cost values")
-    plt.grid()
-    plt.legend()
-    plt.savefig("cost_" + env_name)
-    plt.show()
-
-
 def show_optimal_trajectory(env, U):
     env.reset()
-    reward = 0.
     for u in U:
-        _, r, _, _ = env.step(u)
-        reward += r
+        env.step(u)
         env.render()
         time.sleep(0.1)
-    return reward
 
 def control_ilqr(env_name="TwoLinkArm-v0"):
 
     env, sim_env = gym.make(env_name), gym.make(env_name)
-    U, X, costs = ilqr.calc_ilqr_input(env, sim_env, tN=100, max_iter=1000000)
-    plot_costs_ilqr(costs, "iLQR: " + env_name)
-    plot_states_and_control_ilqr(X, U, "iLQR: " + env_name)
+    U, X = mpc.calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
 
-    print("\nShowing optimal trajectory")
-    reward = show_optimal_trajectory(env, U)
-    print("Total Reward for optimal trajectory: {}".format(reward))
+    print U
+    print X
+    plot_states_and_control_ilqr(X, U, "MPC: " + env_name)
+
+    print("Showing optimal trajectory")
+    show_optimal_trajectory(env, U)
 
 
 if __name__ == "__main__":
