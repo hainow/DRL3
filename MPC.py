@@ -12,7 +12,7 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
     x = [i + 1 for i in range(len(states))]
 
     figure, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, sharex=True, sharey=False)
-    figure.suptitle(env_name, fontsize=20)
+    # figure.suptitle(env_name, fontsize=20)
 
     ax1.plot(x, states[:, 0], color='b')
     ax1.set_ylabel("q[0]", color='b')
@@ -34,7 +34,7 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
     ax6.set_xlabel("timesteps", fontsize=14)
 
     plt.savefig(env_name + ".png")
-    plt.show()
+    # plt.show()
 
 
 def show_optimal_trajectory(env, U):
@@ -46,6 +46,7 @@ def show_optimal_trajectory(env, U):
         time.sleep(0.1)
         reward += r
     return reward
+
 
 def control_ilqr(env_name="TwoLinkArm-v0"):
 

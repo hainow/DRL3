@@ -28,14 +28,13 @@ def calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
     """
     U_mpc = np.zeros((tN, 2))
     X_mpc = np.zeros((tN, 4))
-    # reset for next iLQR iterative process
     env.reset()
     sim_env.reset()
 
     for t in range(tN):
         print("\n***Begin using iLQR to optimize for current timestep {}***\n".format(t))
-        # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
-        U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN, max_iter)
+        U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
+        # U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN, max_iter)
 
         # update x_t and record u_t for next timestep's optimization
         current_x, _, _, _ = env.step(U[0])
@@ -73,22 +72,23 @@ def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
     """
     U_mpc = np.zeros((tN, 2))
     X_mpc = np.zeros((tN, 4))
-    # reset for next iLQR iterative process
     env.reset()
     sim_env.reset()
 
-    for t in range(2):
+    n_groups = 10
+    for t in range(n_groups):
         print("\n***Begin using iLQR to optimize for current timestep {}***\n".format(t))
         # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
         U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN, max_iter)
+        # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
 
         # update x_t and record u_t for next timestep's optimization
-        for i in range(tN/2):
+        for i in range(tN/n_groups):
             current_x, _, _, _ = env.step(U[i])
             env.state = current_x
-            X_mpc[t * (tN/2) + i] = current_x
+            X_mpc[t * (tN/n_groups) + i] = current_x
 
         # update optimal control sequence at current timestep, discard the rest
-        U_mpc[t * (tN/2): (t+1) * (tN/2)] = U[:tN/2]
+        U_mpc[t * (tN/n_groups): (t+1) * (tN/n_groups)] = U[:tN/n_groups]
 
     return U_mpc, X_mpc

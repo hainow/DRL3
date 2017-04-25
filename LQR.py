@@ -20,7 +20,7 @@ def plot_states_and_control(states=None, u=None, env_name=None):
     x = [i + 1 for i in range(len(states))]
 
     figure, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, sharex=True, sharey=False)
-    figure.suptitle(env_name, fontsize=20)
+    # figure.suptitle(env_name, fontsize=20)
 
     ax1.plot(x, states[:, 0], color='b')
     ax1.set_ylabel("q[0]", color='b')

@@ -166,7 +166,7 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         current_x = x0.copy()
         for t in range(tN - 1):
             U_new[t] = U[t] + k[t] + np.dot(K[t], current_x - X[t])
-            current_x = simulate_dynamics_next(env, current_x, U_new[t])
+            current_x = simulate_dynamics_next(sim_env, current_x, U_new[t])
 
         # collect monitoring data
         # env.render()  # optionally can render during training
@@ -195,12 +195,12 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         # collect stats
         rewards.append(reward)
 
-        if np.sum(np.square(env.goal - x_next)) <= 1e-2:
-            print("***Close enough to goal, stopping now!***")
+        if np.sum(np.square(env.goal - x_next)) <= 1e-3:
+            print("***Close enough to goal, stopping now at iteration {}!***".format(i))
             break
 
     # We change this API so that plotting will be in our driver "iLQR.py"
-    # just besides U, we output plotting statistics
+    # just besides U, we output plotting statistics+
     return U, X, costs, rewards
 
 

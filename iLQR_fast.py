@@ -12,7 +12,7 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
     x = [i + 1 for i in range(len(states))]
 
     figure, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, sharex=True, sharey=False)
-    figure.suptitle(env_name, fontsize=20)
+    # figure.suptitle(env_name, fontsize=20)
 
     ax1.plot(x, states[:, 0], color='b')
     ax1.set_ylabel("q[0]", color='b')
@@ -40,7 +40,7 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
 def plot_costs_ilqr(costs=None, env_name=None):
     x = [i+1 for i in range(len(costs))]
     plt.plot(x, costs, color='r', marker='*', label='')
-    plt.title("iLQR: Costs over timesteps for " + env_name, fontsize=20)
+    # plt.title("iLQR: Costs over timesteps for " + env_name, fontsize=20)
     plt.xlabel("iterations", fontsize=14)
     plt.ylabel("cost values")
     plt.grid()
@@ -52,7 +52,7 @@ def plot_costs_ilqr(costs=None, env_name=None):
 def plot_rewards_ilqr(rewards=None, env_name=None):
     x = [i + 1 for i in range(len(rewards))]
     plt.plot(x, rewards, color='g', marker='*', label='')
-    plt.title("iLQR: Training rewards over timesteps for " + env_name, fontsize=20)
+    # plt.title("iLQR: Training rewards over timesteps for " + env_name, fontsize=20)
     plt.xlabel("iterations", fontsize=14)
     plt.ylabel("reward values")
     plt.grid()
