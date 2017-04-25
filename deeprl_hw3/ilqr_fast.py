@@ -91,11 +91,11 @@ def cost_final(env, x):
     l, l_x, l_xx The first term is the loss, where the remaining terms are derivatives respect to the
     corresponding variables
     """
-    l = 10**4 * np.sum(np.square(x - env.goal))
+    l = 10 ** 4 * np.sum(np.square(x - env.goal))
 
     # derivatives w.r.t x
-    l_x = 2 * 10**4 * (x - env.goal)  # n x 1
-    l_xx = 2 * 10**4 * np.eye(x.shape[0])  # n x n
+    l_x = 2 * 10 ** 4 * (x - env.goal)  # n x 1
+    l_xx = 2 * 10 ** 4 * np.eye(x.shape[0])  # n x n
 
     return l, l_x, l_xx
 
@@ -200,14 +200,13 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         # collect stats
         rewards.append(reward)
 
-        if np.sum(np.square(env.goal - x_next)) <= 1e-2:
+        if np.sum(np.square(env.goal - x_next)) <= 1e-3:
             print("***Close enough to goal, stopping now!***")
             break
 
     # We change this API so that plotting will be in our driver "iLQR.py"
     # just besides U, we output plotting statistics
     return U, X, costs, rewards
-
 
 
 # ==================================================
