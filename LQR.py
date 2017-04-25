@@ -15,8 +15,8 @@ Ref: https://en.wikipedia.org/wiki/Linear%E2%80%93quadratic_regulator
 """
 
 
-def plot_states_and_control(states=None, u=None, env_name=None):
-    assert (len(states) == len(u))
+def plot_states_and_control(states=None, U=None, env_name=None):
+    assert (len(states) == len(U))
     x = [i + 1 for i in range(len(states))]
 
     figure, (ax1, ax2, ax3, ax4, ax5, ax6) = plt.subplots(6, sharex=True, sharey=False)
@@ -34,14 +34,46 @@ def plot_states_and_control(states=None, u=None, env_name=None):
     ax4.plot(x, states[:, 3], color='r')
     ax4.set_ylabel("dq[1]", color='r')
 
-    ax5.plot(x, u[:, 0], color='g')
+    ax5.plot(x, U[:, 0], color='g')
     ax5.set_ylabel("u[0]", color='g')
 
-    ax6.plot(x, u[:, 1], color='g')
+    ax6.plot(x, U[:, 1], color='g')
     ax6.set_ylabel("u[1]", color='g')
     ax6.set_xlabel("iterations", fontsize=14)
 
     plt.savefig(env_name + ".png")
+    plt.show()
+
+
+def plot_clipped_control_in_action_space(env=None, env_name=None, U=None):
+    """ Plot clipped control sequences
+        To be used for "TORQUE env only """
+
+    lows = env.action_space.low  # (-10, -10)
+    highs = env.action_space.high  # (10, 10)
+
+    # clipping values
+    U1 = U[:, 0]
+    U1[U1 < lows[0]] = lows[0]
+    U1[U1 > highs[0]] = highs[0]
+
+    U2 = U[:, 1]
+    U2[U2 < lows[1]] = lows[1]
+    U2[U2 > highs[1]] = highs[1]
+
+    # plot
+    figure, (ax1, ax2) = plt.subplots(2, sharex=False, sharey=False)
+    x = [i + 1 for i in range(len(U))]
+
+    ax1.plot(x, U[:, 0], color='b')
+    ax1.set_ylabel("u[0]", color='b')
+    ax1.set_xlabel("iterations", fontsize=12)
+
+    ax2.plot(x, U[:, 1], color='r')
+    ax2.set_ylabel("u[1]", color='r')
+    ax2.set_xlabel("iterations", fontsize=12)
+
+    plt.savefig("Clipped U: " + env_name)
     plt.show()
 
 
@@ -64,7 +96,7 @@ def control_lqr(env_name="TwoLinkArm-v0"):
         # show time
         env.render()
 
-        #true stopping condition
+        # true stopping condition
         if is_done:
             print("Terminal state reached at loop {}".format(count))
             break
@@ -81,6 +113,8 @@ def control_lqr(env_name="TwoLinkArm-v0"):
     states, us = np.array(states), np.array(us)
     plot_states_and_control(states, us, "LQR: " + env_name)
 
+    if 'torque' in env_name:
+        plot_clipped_control_in_action_space(env, env_name, us)
 
 if __name__ == "__main__":
     env_names = [

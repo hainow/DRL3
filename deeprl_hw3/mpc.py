@@ -47,7 +47,7 @@ def calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
     return U_mpc, X_mpc
 
 
-def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
+def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000, n_groups=2):
     """Calculate the optimal control input for the given state.
     
     A FASTER SOLUTION: instead of optimizing just 1 state at a time 
@@ -64,7 +64,8 @@ def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
       doing finite differences.
     tN: number of control steps you are going to execute
     max_iter: max iterations for optmization
-
+    n_groups: number of groups. For example, in order to get 100 control steps, we divide it into 10 groups
+                We run 10 times of iLQR, each time we optimize for 100 steps, 90 steps, 80 steps, ... and so on
     Returns
     -------
     U: np.array
@@ -75,15 +76,13 @@ def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
     env.reset()
     sim_env.reset()
 
-    n_groups = 10
     for t in range(n_groups):
-        print("\n***Begin using iLQR to optimize for current timestep {}***\n".format(t))
-        # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
-        U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN, max_iter)
-        # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
+        print("\n***Begin using iLQR to optimize for current timestep {} for {} control steps ***\n".format(t, tN))
+        U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
+        # U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN - t * (tN/n_groups), max_iter)
 
         # re-assign starting env.
-        env.state = X_mpc[t* (tN/n_groups)]
+        env.state = X_mpc[t*(tN/n_groups)]
 
         # update x_t and record u_t for next timestep's optimization
         for i in range(tN/n_groups):

@@ -48,10 +48,22 @@ def show_optimal_trajectory(env, U):
     return reward
 
 
-def control_ilqr(env_name="TwoLinkArm-v0"):
+def control_mpc(env_name="TwoLinkArm-v0"):
 
     env, sim_env = gym.make(env_name), gym.make(env_name)
-    # U, X = mpc.calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
+    U, X = mpc.calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
+    print U
+    print X
+    plot_states_and_control_ilqr(X, U, "MPC: " + env_name)
+
+    print("Showing optimal trajectory")
+    final_reward  = show_optimal_trajectory(env, U)
+    print("Total Reward for optimal trajectory: {}".format(final_reward))
+
+
+def fast_control_mpc(env_name="TwoLinkArm-v0", n_groups=2):
+
+    env, sim_env = gym.make(env_name), gym.make(env_name)
     U, X = mpc.faster_calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
     print U
     print X
@@ -68,11 +80,19 @@ if __name__ == "__main__":
     ]
 
     try:
+        # print("\nQuestion 1")
+        # control_mpc(env_names[0])
+
+        # print("\nQuestion 2")
+        # control_mpc(env_names[1])
+        #
+        # print("\nQuestion 3 is to compare q1 vs. q2")
+        #
         print("\nQuestion 1")
-        control_ilqr(env_names[0])
+        fast_control_mpc(env_name=env_names[0], n_groups=2)
 
         print("\nQuestion 2")
-        control_ilqr(env_names[1])
+        fast_control_mpc(env_name=env_names[1], n_groups=2)
 
         print("\nQuestion 3 is to compare q1 vs. q2")
 
