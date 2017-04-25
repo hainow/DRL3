@@ -92,14 +92,14 @@ def plot_reinforce(dataname='reinforce_data.csv', plotname='REINFORCE Plot.png')
     plt.figure()
     plt.errorbar(indices, mean_rewards, yerr=[lower, upper], ecolor='red', elinewidth=0.4, capsize=4)
     plt.title("REINFORCE Average Rewards vs. Episode with Min/Max Error Bars")
-    plt.xticks(np.arange(0, 20, 2))
     plt.ylabel('Episode Reward')
     plt.xlabel('Episode')
     plt.savefig(plotname)
 
 def main():
-    test_reinforce()
-    plot_reinforce()
+    filename = 'reinforce_data.csv'
+    test_reinforce(output=filename)
+    plot_reinforce(dataname=filename, plotname='REINFORCE Plot.png')
 
 if __name__ == '__main__':
     main()

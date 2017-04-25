@@ -25,10 +25,18 @@ Make sure you are on Python 3.5.2.
 
 ## Outputs
 
-For Question #2, run
+For Question #2 and the extra credit for DAGGER, run
 
 ```
 python run_imitation.py
 ```
 
-which should output all necessary information in `imitation_output.txt`.
+which should output all necessary information in `imitation_output.txt`, `dagger_data.csv`, and `DAGGER Plot.png`.
+
+Similarly for Question #3, run the following
+
+```
+python run_reinforce.py
+```
+
+to get outputs in `reinforce_data.csv`, `reinforce_output.txt`, and `REINFORCE Plot.png`.

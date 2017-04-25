@@ -1,2 +1,4 @@
 REINFORCE:
  - Hard Reward: 12.6000 +/- 6.8411
+REINFORCE:
+ - Hard Reward: 20.7200 +/- 14.5781
