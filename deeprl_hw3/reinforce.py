@@ -72,7 +72,7 @@ def process_rewards(rewards, gamma):
         discounted[i] = rewards[i] + gamma*discounted[i+1]
     return np.array(discounted)
 
-def reinforce(env, sess):
+def reinforce(env, sess, gamma = 0.98, alpha = 0.00025):
     """Policy gradient algorithm
 
     Parameters
@@ -86,31 +86,27 @@ def reinforce(env, sess):
     """
 
     model = imit.load_model('CartPole-v0_config.yaml')
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     tf.initialize_all_variables()
-    opt = tf.train.AdamOptimizer()
 
     action_input = tf.placeholder(dtype=tf.int32, shape=(1,))
     loss = tf.log(tf.gather(tf.reshape(model.output, (2,)), [action_input]))
 
     grads = tf.gradients(loss, model.weights)
 
-    def get_gradient(state, action, grad):
-        return sess.run(grad, feed_dict = {
+    def get_gradient(state, action):
+        return sess.run(grads, feed_dict = {
                 model.input : state,
                 action_input : [action]
             })
 
-    alpha = 0.0025
-    gamma = 0.9
-
     rewards = []
+    iteration = 0
     while True:
         S, A, R = run_episode(env, model)
 
         reward = sum(R)
         rewards.append(reward)
-        print("REWARD: %.4f" % reward)
+        print("REWARD (%d): %.4f" % (iteration, reward))
         if len(rewards) > 20 and np.std(np.array(rewards[-20:])) < 3. and np.mean(np.array(rewards[-5:])) > 50.:
             print("CONVERGED")
             return get_total_reward(env, model)
@@ -119,8 +115,10 @@ def reinforce(env, sess):
         total_gradient = None
         weights = model.get_weights()
         for t in range(len(S)):
-            gradients = get_gradient(S[t].reshape((1,4)), A[t], grads)
+            gradients = get_gradient(S[t].reshape((1,4)), A[t])
             assert(len(weights) == len(gradients))
             for i in range(len(weights)):
-                weights[i] += (gamma ** t) * alpha * G[t] * gradients[i]
+                #weights[i] += (gamma ** t) * alpha * G[t] * gradients[i]
+                weights[i] += alpha * G[t] *(gamma**t)* gradients[i]
         model.set_weights(weights)
+        iteration += 1
