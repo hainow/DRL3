@@ -90,19 +90,18 @@ def reinforce(env, sess):
     tf.initialize_all_variables()
     opt = tf.train.AdamOptimizer()
 
-    #action_input = tf.placeholder(dtype=tf.int32, shape=(1,))
-    #loss = tf.log(tf.gather(tf.reshape(model.output, (2,)), [action_input]))
-    loss = tf.log(model.output)
-    grads = opt.compute_gradients(loss, model.weights)
+    action_input = tf.placeholder(dtype=tf.int32, shape=(1,))
+    loss = tf.log(tf.gather(tf.reshape(model.output, (2,)), [action_input]))
 
-    #print(grads)
+    grads = tf.gradients(loss, model.weights)
 
-    def get_gradient(state, grad):
+    def get_gradient(state, action, grad):
         return sess.run(grad, feed_dict = {
-                model.input : state
+                model.input : state,
+                action_input : [action]
             })
 
-    alpha = 0.025
+    alpha = 0.0025
     gamma = 0.9
 
     rewards = []
@@ -112,17 +111,16 @@ def reinforce(env, sess):
         reward = sum(R)
         rewards.append(reward)
         print("REWARD: %.4f" % reward)
-        if len(rewards) > 20 and np.std(np.array(rewards[-5:])) < 5.:
+        if len(rewards) > 20 and np.std(np.array(rewards[-20:])) < 3. and np.mean(np.array(rewards[-5:])) > 50.:
             print("CONVERGED")
-            break
+            return get_total_reward(env, model)
 
         G = process_rewards(R, gamma)
         total_gradient = None
+        weights = model.get_weights()
         for t in range(len(S)):
-            gradient = [None] * len(grads)
-            for i in range(len(grads)):
-                gradient[i] = (-1 * (gamma ** t) * alpha * G[t] * get_gradient(S[t].reshape((1,4)), grads[i][0]), grads[i][1])
-
-            opt.apply_gradients(gradient)
-
-    return get_total_reward(env, model)
+            gradients = get_gradient(S[t].reshape((1,4)), A[t], grads)
+            assert(len(weights) == len(gradients))
+            for i in range(len(weights)):
+                weights[i] += (gamma ** t) * alpha * G[t] * gradients[i]
+        model.set_weights(weights)
