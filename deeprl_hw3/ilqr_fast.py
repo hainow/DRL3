@@ -58,7 +58,7 @@ def cost_inter(env, x, u):
     l = np.sum(np.square(u))
 
     # adding regularization term
-    # l += 10**4 * np.sum(np.square(x - env.goal))
+    l += 10**4 * np.sum(np.square(x - env.goal))
 
     # derivatives w.r.t x are all Zeros
     l_x = np.zeros(x.shape[0])

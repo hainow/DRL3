@@ -64,10 +64,15 @@ def control_lqr(env_name="TwoLinkArm-v0"):
         # show time
         env.render()
 
-        # early stopping
-        if np.sum(np.square(env.goal - env.state)) <= 1e-3:
-            print("\n\nConverged! Early stopping at loop {}... \n".format(count))
+        #true stopping condition
+        if is_done:
+            print("Terminal state reached at loop {}".format(count))
             break
+
+        # early stopping
+        # if np.sum(np.square(env.goal - env.state)) <= 1e-3:
+        #     print("\n\nConverged! Early stopping at loop {}... \n".format(count))
+        #     break
 
     print(rewards)
     print("Total rewards: {}".format(np.sum(rewards)))

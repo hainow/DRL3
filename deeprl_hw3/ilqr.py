@@ -1,8 +1,6 @@
 """LQR, iLQR and MPC."""
 
-from deeprl_hw3.controllers import approximate_A, approximate_B
 import numpy as np
-import scipy.linalg
 
 import controllers as ctl
 
@@ -172,17 +170,10 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         # env.render()  # optionally can render during training
         costs.append(new_cost)
 
-        # Stopping Condition 1:
-        # set stopping condition based on the cost
-        # if abs(new_cost - current_cost) / float(current_cost) <= float(1e-3):
-        #     print("early stopping at loop {}, cost = {}".format(i, new_cost))
-        #     break
-
         # update control sequences
         U = np.copy(U_new)
         current_cost = new_cost
 
-        # Stopping condition 2
         # test with real env whether it can reach goal close enough in the real env.
         # if so, early stop!
         x_next = np.zeros((4,))
@@ -195,6 +186,7 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
         # collect stats
         rewards.append(reward)
 
+        # Stopping condition
         if np.sum(np.square(env.goal - x_next)) <= 1e-3:
             print("***Close enough to goal, stopping now at iteration {}!***".format(i))
             break
