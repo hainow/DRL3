@@ -41,12 +41,24 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
 def plot_costs_ilqr(costs=None, env_name=None):
     x = [i+1 for i in range(len(costs))]
     plt.plot(x, costs, color='r', marker='*', label='')
-    plt.title("iLQR: Costs over timesteps for " + env_name, fontsize=20)
+    plt.title("iLQR: Training costs over timesteps for " + env_name, fontsize=20)
     plt.xlabel("iterations", fontsize=14)
     plt.ylabel("cost values")
     plt.grid()
     plt.legend()
     plt.savefig("cost_" + env_name)
+    plt.show()
+
+
+def plot_rewards_ilqr(rewards=None, env_name=None):
+    x = [i + 1 for i in range(len(rewards))]
+    plt.plot(x, rewards, color='g', marker='*', label='')
+    plt.title("iLQR: Training rewards over timesteps for " + env_name, fontsize=20)
+    plt.xlabel("iterations", fontsize=14)
+    plt.ylabel("reward values")
+    plt.grid()
+    plt.legend()
+    plt.savefig("reward_" + env_name)
     plt.show()
 
 
@@ -60,16 +72,18 @@ def show_optimal_trajectory(env, U):
         time.sleep(0.1)
     return reward
 
+
 def control_ilqr(env_name="TwoLinkArm-v0"):
 
     env, sim_env = gym.make(env_name), gym.make(env_name)
-    U, X, costs = ilqr.calc_ilqr_input(env, sim_env, tN=100, max_iter=1000000)
+    U, X, costs, rewards = ilqr.calc_ilqr_input(env, sim_env, tN=100, max_iter=1000000)
     plot_costs_ilqr(costs, "iLQR: " + env_name)
+    plot_rewards_ilqr(rewards, "iLQR: " + env_name)
     plot_states_and_control_ilqr(X, U, "iLQR: " + env_name)
 
     print("\nShowing optimal trajectory")
-    reward = show_optimal_trajectory(env, U)
-    print("Total Reward for optimal trajectory: {}".format(reward))
+    final_reward = show_optimal_trajectory(env, U)
+    print("Total Reward for optimal trajectory: {}".format(final_reward))
 
 
 if __name__ == "__main__":

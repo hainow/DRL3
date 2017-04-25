@@ -3,7 +3,7 @@
 import numpy as np
 
 import ilqr
-
+import ilqr_fast
 
 def calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
     """Calculate the optimal control input for the given state.
@@ -28,13 +28,14 @@ def calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
     """
     U_mpc = np.zeros((tN, 2))
     X_mpc = np.zeros((tN, 4))
+    # reset for next iLQR iterative process
+    env.reset()
+    sim_env.reset()
+
     for t in range(tN):
         print("\n***Begin using iLQR to optimize for current timestep {}***\n".format(t))
-        U, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
-
-        # reset for next iLQR iterative process
-        env.reset()
-        sim_env.reset()
+        # U, _, _, _ = ilqr.calc_ilqr_input(env, sim_env, tN, max_iter)
+        U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN, max_iter)
 
         # update x_t and record u_t for next timestep's optimization
         current_x, _, _, _ = env.step(U[0])
@@ -45,3 +46,4 @@ def calc_mpc_input(env, sim_env, tN=50, max_iter=1000000):
         X_mpc[t] = current_x
 
     return U_mpc, X_mpc
+

@@ -38,11 +38,14 @@ def plot_states_and_control_ilqr(states=None, u=None, env_name=None):
 
 
 def show_optimal_trajectory(env, U):
+    reward = 0.
     env.reset()
     for u in U:
-        env.step(u)
+        _, r, _, _  = env.step(u)
         env.render()
         time.sleep(0.1)
+        reward += r
+    return reward
 
 def control_ilqr(env_name="TwoLinkArm-v0"):
 
@@ -54,8 +57,8 @@ def control_ilqr(env_name="TwoLinkArm-v0"):
     plot_states_and_control_ilqr(X, U, "MPC: " + env_name)
 
     print("Showing optimal trajectory")
-    show_optimal_trajectory(env, U)
-
+    final_reward  = show_optimal_trajectory(env, U)
+    print("Total Reward for optimal trajectory: {}".format(final_reward))
 
 if __name__ == "__main__":
     env_names = [

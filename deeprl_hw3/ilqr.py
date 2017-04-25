@@ -106,7 +106,7 @@ def simulate(env, x0, U):
 
     # accumulate the cost except for the last state's
     for i in range(tN - 1):
-        l, _, _, _, _, _ = cost_inter(env, U[i], X[i])
+        l, _, _, _, _, _ = cost_inter(env, X[i], U[i])
         total_cost += env.dt * l
         X[i + 1] = simulate_dynamics_next(env, X[i], U[i])
 
@@ -144,11 +144,13 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
 
     U, U_new = np.zeros((tN, 2)), np.zeros((tN, 2))
     n, d = x0.shape[0], U[0].shape[0]  # n = 4, d = 2
-    costs = []  # stats for plotting
+    costs, rewards = [], []  # stats for plotting
     current_cost = np.inf
+
     # begin optimizing
     for i in range(max_iter):
-        X, new_cost = simulate(env, x0, U)
+        sim_env.reset()
+        X, new_cost = simulate(sim_env, x0, U)
 
         print("At iteration {}:\tcurrent cost = {}\tnew_cost = {}\tx0 = {}".format(i, current_cost, new_cost, x0))
 
@@ -167,21 +169,39 @@ def calc_ilqr_input(env, sim_env, tN=50, max_iter=1000000):
             current_x = simulate_dynamics_next(env, current_x, U_new[t])
 
         # collect monitoring data
-        env.render()  # optionally can render during training
+        # env.render()  # optionally can render during training
         costs.append(new_cost)
 
-        # set stopping condition
-        if abs(new_cost - current_cost) / float(current_cost) <= float(1e-3):
-            print("early stopping at loop {}, cost = {}".format(i, new_cost))
-            break
+        # Stopping Condition 1:
+        # set stopping condition based on the cost
+        # if abs(new_cost - current_cost) / float(current_cost) <= float(1e-3):
+        #     print("early stopping at loop {}, cost = {}".format(i, new_cost))
+        #     break
 
         # update control sequences
         U = np.copy(U_new)
         current_cost = new_cost
 
+        # Stopping condition 2
+        # test with real env whether it can reach goal close enough in the real env.
+        # if so, early stop!
+        x_next = np.zeros((4,))
+        env.reset()
+        reward = 0.
+        for u in U:
+            x_next, r, _, _ = env.step(u)
+            reward += r
+
+        # collect stats
+        rewards.append(reward)
+
+        if np.sum(np.square(env.goal - x_next)) <= 1e-2:
+            print("***Close enough to goal, stopping now!***")
+            break
+
     # We change this API so that plotting will be in our driver "iLQR.py"
     # just besides U, we output plotting statistics
-    return U, X, costs
+    return U, X, costs, rewards
 
 
 # ==================================================
