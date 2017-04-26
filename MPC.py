@@ -93,6 +93,7 @@ if __name__ == "__main__":
 
         ### END OF WARNING ###
 
+        # GROUP version, much faster to test
         print("\nQuestion 1")
         fast_control_mpc(env_name=env_names[0], n_groups=10)
 

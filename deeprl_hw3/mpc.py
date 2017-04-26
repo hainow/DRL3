@@ -80,7 +80,7 @@ def faster_calc_mpc_input(env, sim_env, tN=50, max_iter=1000000, n_groups=2):
         print("\n***Begin using iLQR to optimize for current timestep {}/{} ***\n".format(t, (n_groups-1)))
         U, _, _, _ = ilqr_fast.calc_ilqr_input(env, sim_env, tN - t * (tN/n_groups), max_iter)
 
-        # re-assign starting env.
+        # re-assign starting env. as in iLQR the env. state is changed
         env.state = X_mpc[t*(tN/n_groups)]
 
         # update x_t and record u_t for next timestep's optimization
