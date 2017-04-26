@@ -64,7 +64,7 @@ def control_mpc(env_name="TwoLinkArm-v0"):
 def fast_control_mpc(env_name="TwoLinkArm-v0", n_groups=2):
 
     env, sim_env = gym.make(env_name), gym.make(env_name)
-    U, X = mpc.faster_calc_mpc_input(env, sim_env, tN=100, max_iter=1000000)
+    U, X = mpc.faster_calc_mpc_input(env, sim_env, tN=100, max_iter=1000000, n_groups=n_groups)
     print U
     print X
     plot_states_and_control_ilqr(X, U, "MPC: " + env_name)
@@ -94,10 +94,10 @@ if __name__ == "__main__":
         ### END OF WARNING ###
 
         print("\nQuestion 1")
-        fast_control_mpc(env_name=env_names[0], n_groups=20)
+        fast_control_mpc(env_name=env_names[0], n_groups=10)
 
         print("\nQuestion 2")
-        fast_control_mpc(env_name=env_names[1], n_groups=20)
+        fast_control_mpc(env_name=env_names[1], n_groups=10)
 
         print("\nQuestion 3 is to compare q1 vs. q2")
 
