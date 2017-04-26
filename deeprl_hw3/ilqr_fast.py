@@ -57,7 +57,7 @@ def cost_inter(env, x, u):
     # main intermediate cost
     l = np.sum(np.square(u))
 
-    # adding regularization term
+    # adding regularization term for fast iLQR
     l += 10**4 * np.sum(np.square(x - env.goal))
 
     # derivatives w.r.t x are all Zeros

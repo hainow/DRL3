@@ -80,6 +80,9 @@ if __name__ == "__main__":
     ]
 
     try:
+        ### WARNING: ORIGINAL VERSION ###
+        ### very long to converge ###
+
         # print("\nQuestion 1")
         # control_mpc(env_names[0])
 
@@ -87,12 +90,14 @@ if __name__ == "__main__":
         # control_mpc(env_names[1])
         #
         # print("\nQuestion 3 is to compare q1 vs. q2")
-        #
+
+        ### END OF WARNING ###
+
         print("\nQuestion 1")
-        fast_control_mpc(env_name=env_names[0], n_groups=2)
+        fast_control_mpc(env_name=env_names[0], n_groups=20)
 
         print("\nQuestion 2")
-        fast_control_mpc(env_name=env_names[1], n_groups=2)
+        fast_control_mpc(env_name=env_names[1], n_groups=20)
 
         print("\nQuestion 3 is to compare q1 vs. q2")
 
